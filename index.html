@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WPC Parts Data Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&display=swap">
+<style>
+/* Layout: single indigo world (deliberate, one theme). Poster header top-right like the brief's reference, then a fixed-coordinate process map that scales to width, a demo bar, and a slide-in detail drawer. */
+:root{
+  --ink:#2c2a86; --ink-deep:#221f6e; --ink-raise:#37359a; --ink-line:#4a48b0;
+  --white:#ffffff; --lav:#aeacea; --lav-dim:#7f7dcc;
+  --glow:#8fd6ff; --alert:#ff8f8f; --warn:#ffd27d;
+  --en:"Montserrat","IBM Plex Sans Thai",system-ui,sans-serif;
+  --th:"IBM Plex Sans Thai","Montserrat",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--ink);color:var(--white);margin:0}
+body{font-family:var(--th);font-size:15px;line-height:1.6}
+.page{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:36px 48px;display:grid;gap:22px}
+
+/* header */
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px}
+.brand{font-family:var(--en);font-size:12px;letter-spacing:.28em;color:var(--lav);text-transform:uppercase}
+.title{text-align:right;display:grid;justify-items:end;gap:10px;margin-left:auto}
+.title h1{margin:0;font-family:var(--en);font-weight:700;font-size:clamp(34px,5.4vw,64px);letter-spacing:.14em;line-height:1.02;text-wrap:balance}
+.title .sub{font-family:var(--en);font-weight:500;letter-spacing:.24em;font-size:clamp(12px,1.4vw,16px);text-transform:uppercase}
+.title .bar{width:70px;height:6px;background:var(--white)}
+.title p{margin:0;max-width:44ch;color:var(--lav);font-size:14px;font-weight:300}
+
+/* map */
+.mapwrap{position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.stage{position:relative;width:1200px;height:880px;transform-origin:0 0}
+.stage svg.edges{position:absolute;inset:0;width:1200px;height:880px;overflow:visible}
+.edge{fill:none;stroke:rgba(255,255,255,.42);stroke-width:1.4;transition:stroke .25s,opacity .25s}
+.edge.dot{stroke-dasharray:2 5;stroke-width:2;stroke-linecap:round}
+.edge.on{stroke:var(--white);stroke-width:2;stroke-dasharray:6 6;animation:flow 1.1s linear infinite}
+.edge.dot.on{stroke-dasharray:2 5}
+@keyframes flow{to{stroke-dashoffset:-24}}
+.elabel{font-family:var(--th);font-size:12.5px;fill:var(--lav)}
+.elabel.en{font-family:var(--en);font-size:11px;letter-spacing:.24em;font-weight:600;fill:var(--white)}
+.etag rect{fill:none;stroke:var(--lav-dim)}
+.focus .edge:not(.on){opacity:.18}
+
+.node{all:unset;position:absolute;cursor:pointer;display:grid;justify-items:center;text-align:center;gap:6px;width:190px;transform:translate(-50%,-30px);transition:opacity .25s}
+.node .ic{width:60px;height:60px;display:grid;place-items:center;border-radius:50%;transition:background .2s,box-shadow .2s}
+.node svg{width:52px;height:52px;stroke:var(--white);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.node .en{font-family:var(--en);font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;line-height:1.35}
+.node .th{font-size:13px;color:var(--lav);line-height:1.35;font-weight:400}
+.node:hover .ic,.node:focus-visible .ic{background:var(--ink-raise);box-shadow:0 0 0 6px rgba(255,255,255,.06)}
+.node:focus-visible{outline:none}
+.node:focus-visible .en{text-decoration:underline;text-underline-offset:4px}
+.badge{font-family:var(--th);font-size:11px;font-weight:500;padding:1px 9px;border-radius:999px;border:1px solid currentColor;line-height:1.6}
+.badge.alert{color:var(--alert)} .badge.warn{color:var(--warn)}
+
+.node.hub{width:240px;transform:translate(-50%,-62px)}
+.node.hub .ic{width:124px;height:124px;border:1.5px solid var(--white);box-shadow:0 0 0 10px rgba(255,255,255,.05),0 0 0 22px rgba(255,255,255,.03)}
+.node.hub svg{width:58px;height:58px}
+.node.hub .en{font-size:13px}
+.node.hub .th{font-size:14px;color:var(--white)}
+
+.node.pill{width:auto;transform:translate(-50%,-50%);grid-auto-flow:column;align-items:center;gap:10px;padding:8px 18px 8px 10px;border:1.3px solid rgba(255,255,255,.7);border-radius:999px;background:var(--ink);min-width:220px;justify-content:start}
+.node.pill svg{width:22px;height:22px}
+.node.pill .txt{display:grid;text-align:left;gap:0}
+.node.pill .en{font-size:9.5px}
+.node.pill .th{font-size:12.5px;color:var(--white)}
+.node.pill:hover,.node.pill:focus-visible{background:var(--ink-raise);border-color:var(--white)}
+.node.pill.chan{min-width:0;width:128px;justify-content:center;padding:7px 14px}
+.node.chan .en{font-size:10.5px}
+.frame{position:absolute;left:250px;top:705px;width:300px;height:118px;border:1px dashed rgba(255,255,255,.35);border-radius:14px}
+.frame span{position:absolute;top:-22px;left:0;font-family:var(--en);font-size:10px;letter-spacing:.24em;color:var(--lav);font-weight:600}
+
+.focus .node{opacity:.28}
+.focus .node.lit{opacity:1}
+.node.lit .ic{background:var(--ink-raise)}
+
+/* demo bar */
+.demo{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;border-top:1px solid var(--ink-line);padding-top:16px}
+.btn{all:unset;cursor:pointer;font-family:var(--en);font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;border:1.3px solid var(--white);border-radius:999px;padding:10px 18px;display:inline-flex;gap:10px;align-items:center;white-space:nowrap}
+.btn:hover{background:var(--white);color:var(--ink)}
+.btn:focus-visible{outline:2px solid var(--glow);outline-offset:3px}
+.btn svg{width:12px;height:12px;fill:currentColor}
+.caption{min-width:0;font-size:14.5px}
+.caption b{font-family:var(--en);font-size:11px;letter-spacing:.22em;color:var(--lav);display:block;font-weight:600}
+.dots{display:flex;gap:6px}
+.dots button{all:unset;cursor:pointer;width:9px;height:9px;border-radius:50%;border:1px solid var(--lav)}
+.dots button.on{background:var(--white);border-color:var(--white)}
+.dots button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+.hint{font-size:13px;color:var(--lav);display:flex;flex-wrap:wrap;gap:18px}
+.hint i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;border:1px solid currentColor}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(14,12,48,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:5}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--ink-deep);border-left:1px solid var(--ink-line);z-index:6;transform:translateX(100%);transition:transform .3s ease;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 28px) 28px calc(env(safe-area-inset-bottom,0px) + 32px);display:grid;align-content:start;gap:22px}
+body.open .scrim{opacity:1;pointer-events:auto}
+body.open .drawer{transform:none}
+.dr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.close{all:unset;cursor:pointer;width:36px;height:36px;border-radius:50%;border:1px solid var(--ink-line);display:grid;place-items:center}
+.close:hover{background:var(--ink-raise)} .close:focus-visible{outline:2px solid var(--glow)}
+.close svg{width:14px;height:14px;stroke:var(--white);stroke-width:2}
+.dr-ic{width:64px;height:64px;border-radius:50%;border:1.3px solid var(--white);display:grid;place-items:center}
+.dr-ic svg{width:36px;height:36px;stroke:var(--white);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.dr-en{font-family:var(--en);font-size:11px;font-weight:600;letter-spacing:.24em;color:var(--lav);text-transform:uppercase}
+.drawer h2{margin:4px 0 0;font-size:26px;font-weight:600;line-height:1.3;text-wrap:balance}
+.drawer p{margin:0;color:#dcdbf6;font-weight:300}
+.sec{display:grid;gap:8px}
+.sec h3{margin:0;font-family:var(--th);font-size:12.5px;letter-spacing:.02em;color:var(--lav);font-weight:600;text-transform:uppercase}
+.sec ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;padding:3px 11px;border-radius:999px;background:var(--ink-raise);border:1px solid var(--ink-line)}
+.jump{all:unset;cursor:pointer;font-size:13px;padding:5px 12px 5px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.6);display:inline-flex;gap:8px;align-items:center}
+.jump:hover{background:var(--white);color:var(--ink)} .jump:focus-visible{outline:2px solid var(--glow)}
+.vers{display:grid;gap:8px}
+.ver{border:1px solid var(--ink-line);border-radius:10px;padding:10px 14px;display:grid;gap:2px}
+.ver b{font-weight:500}
+.ver span{font-size:13px;color:var(--lav)}
+.note{border-left:2px solid var(--warn);padding:4px 0 4px 12px;font-size:14px;color:#f3eccf}
+.note.alert{border-color:var(--alert);color:#ffdede}
+.empty{font-size:13px;color:var(--lav-dim)}
+
+@media (max-width:640px){.title{text-align:left;justify-items:start;margin-left:0}.demo{grid-template-columns:1fr}.dots{order:3}}
+@media (prefers-reduced-motion:reduce){.edge.on{animation:none}.drawer,.scrim,.node,.edge{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <div class="brand">WPC · Auto Parts</div>
+    <div class="title">
+      <h1>DATA<br>MAPPING</h1>
+      <div class="sub">Product Data System</div>
+      <div class="bar"></div>
+      <p>แผนผังเชื่อมโยงฐานข้อมูลที่เกี่ยวข้องกับสินค้า เพื่อสร้างระบบสินค้าของร้าน พร้อมสาธิตวิธีการทำงานของระบบ</p>
+    </div>
+  </header>
+
+  <div class="hint">
+    <span>คลิกที่หัวข้อเพื่อดูรายละเอียดด้านใน</span>
+    <span style="color:var(--warn)"><i></i>รอยืนยันข้อมูล</span>
+    <span style="color:var(--alert)"><i></i>ติดปัญหา</span>
+  </div>
+
+  <div class="mapwrap" id="mapwrap">
+    <div class="stage" id="stage">
+      <svg class="edges" viewBox="0 0 1200 880" aria-hidden="true">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="#fff" stroke-width="1.4"/></marker>
+        </defs>
+        <g id="edges"></g>
+        <text class="elabel" x="232" y="566">เชื่อมโยง</text>
+        <text class="elabel" x="359" y="566" text-anchor="middle">รายละเอียดรถ</text>
+        <text class="elabel" x="492" y="566" text-anchor="end">ระบุตัวตนรถ</text>
+        <g class="etag"><rect x="222" y="590" width="276" height="24" rx="12"/><text class="elabel" x="360" y="607" text-anchor="middle" style="font-size:11.5px">เครื่องยนต์ / ปี / เลขตัวถัง / รุ่นย่อย / โฉมรถ</text></g>
+        <text class="elabel en" x="770" y="566" text-anchor="middle">EXPORT</text>
+        <text class="elabel" x="996" y="275" style="font-size:11.5px">ตัวเชื่อมโยงข้อมูลให้ระบบ</text>
+        <text class="elabel" x="996" y="292" style="font-size:11.5px">สร้างชื่อตาม FORMAT ที่กำหนด</text>
+      </svg>
+      <div class="frame"><span>SALES CHANNELS</span></div>
+    </div>
+  </div>
+
+  <div class="demo">
+    <button class="btn" id="play" type="button"><svg viewBox="0 0 10 10" id="playIc"><path d="M2 1l7 4-7 4z"/></svg><span id="playTxt" style="font-family:var(--th);letter-spacing:.02em;font-size:13px;text-transform:none">สาธิตการทำงาน</span></button>
+    <div class="caption" id="caption"><b>HOW IT WORKS</b>กดปุ่มเพื่อดูการไหลของข้อมูลทีละขั้น ตั้งแต่ไฟล์ข้อมูลดิบจนถึงช่องทางจำหน่าย</div>
+    <div class="dots" id="dots"></div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="รายละเอียดหัวข้อ" aria-hidden="true"></aside>
+
+<script src="data.js"></script>
+<script>
+const I={
+  doc:'<path d="M12 6h17l9 9v27H12z"/><path d="M29 6v9h9"/><path d="M17 22h14M17 28h14M17 34h9"/>',
+  docUp:'<path d="M12 6h17l9 9v27H12z"/><path d="M29 6v9h9"/><path d="M24 36V23M19 28l5-5 5 5"/>',
+  script:'<path d="M11 7l29 17-29 17z"/><path d="M19 20l-3.5 4 3.5 4M24 20l3.5 4-3.5 4"/>',
+  verify:'<circle cx="20" cy="20" r="13"/><path d="M29.5 29.5L41 41"/><path d="M11 20c3.5-5 14.5-5 18 0-3.5 5-14.5 5-18 0z"/><circle cx="20" cy="20" r="2.6"/>',
+  car:'<path d="M5 31v-6l4.2-8.2A3.5 3.5 0 0 1 12.3 15h17.4a3.5 3.5 0 0 1 2.8 1.4L38 23l5 1.6V31h-4.5M9.5 31H5M30 31H18M9 23h29"/><circle cx="14" cy="31" r="4"/><circle cx="34" cy="31" r="4"/>',
+  db:'<ellipse cx="24" cy="11" rx="14" ry="5"/><path d="M10 11v26c0 2.8 6.3 5 14 5s14-2.2 14-5V11"/><path d="M10 20c0 2.8 6.3 5 14 5s14-2.2 14-5M10 28.5c0 2.8 6.3 5 14 5s14-2.2 14-5"/>',
+  store:'<path d="M6 10h36l-2.5 8h-31z"/><path d="M8.5 18v22h31V18"/><path d="M24 35V24M19.5 28.5L24 24l4.5 4.5"/>',
+  cube:'<path d="M24 5l17 9.5v19L24 43 7 33.5v-19z"/><path d="M7 14.5l17 9.5 17-9.5M24 24v19"/>',
+  grid:'<rect x="7" y="7" width="14" height="14" rx="2"/><rect x="27" y="7" width="14" height="14" rx="2"/><rect x="7" y="27" width="14" height="14" rx="2"/><rect x="27" y="27" width="14" height="14" rx="2"/>',
+  tree:'<circle cx="24" cy="9" r="4"/><circle cx="11" cy="39" r="4"/><circle cx="24" cy="39" r="4"/><circle cx="37" cy="39" r="4"/><path d="M24 13v22M11 35v-9h26v9"/>',
+  name:'<path d="M8 12h22M19 12v26M30 24h12M36 24v14"/>',
+  shop:'<path d="M9 17h30l-2 22H11z"/><path d="M17 17v-3a7 7 0 0 1 14 0v3"/>',
+  globe:'<circle cx="24" cy="24" r="17"/><path d="M7 24h34M24 7c5 5 7 11 7 17s-2 12-7 17c-5-5-7-11-7-17s2-12 7-17z"/>'
+};
+const N=[
+  {id:'raw',kind:'icon',x:560,y:80,ic:'doc',en:'Raw Data File',th:'ไฟล์ข้อมูลดิบ'},
+  {id:'size',kind:'pill',x:980,y:70,ic:'cube',en:'Size & Weight DB',th:'ฐานข้อมูลขนาด/น้ำหนักสินค้า'},
+  {id:'cat',kind:'pill',x:980,y:130,ic:'grid',en:'Category DB',th:'ฐานข้อมูลหมวดหมู่สินค้า'},
+  {id:'sub',kind:'pill',x:980,y:230,ic:'tree',en:'SubGroup',th:'กลุ่มย่อยสินค้า'},
+  {id:'fmt',kind:'pill',x:980,y:330,ic:'name',en:'Naming Format',th:'FORMAT สร้างชื่อ'},
+  {id:'sort',kind:'icon',x:560,y:330,ic:'script',en:'Script',th:'การจัดเรียงข้อมูลสินค้า'},
+  {id:'verify',kind:'icon',x:220,y:360,ic:'verify',en:'Verification',th:'ระบบตรวจสอบข้อมูลสินค้า',badge:['alert','CreditSearch · ติดปัญหา']},
+  {id:'vehicle',kind:'icon',x:170,y:580,ic:'car',en:'Vehicle DB',th:'ระบบฐานข้อมูลรถ',badge:['warn','รอยืนยันข้อมูล']},
+  {id:'product',kind:'hub',x:560,y:580,ic:'db',en:'Product Database',th:'ระบบฐานข้อมูลสินค้า'},
+  {id:'listing',kind:'icon',x:960,y:580,ic:'store',en:'Listing System',th:'ระบบลงสินค้า'},
+  {id:'script2',kind:'icon',x:960,y:760,ic:'script',en:'Script',th:'การจัดเรียงข้อมูล'},
+  {id:'file',kind:'icon',x:700,y:760,ic:'docUp',en:'Listing File',th:'ไฟล์สำหรับลงสินค้า'},
+  {id:'shopee',kind:'chan',x:328,y:740,en:'Shopee',ch:1},
+  {id:'lazada',kind:'chan',x:472,y:740,en:'Lazada',ch:1},
+  {id:'tiktok',kind:'chan',x:328,y:792,en:'TikTok',ch:1},
+  {id:'website',kind:'chan',x:472,y:792,en:'Website',ch:1}
+];
+const CH=['shopee','lazada','tiktok','website'];
+const E=[
+  ['e1','raw','sort','M560 150 L560 292',1],
+  ['e2','size','sort','M868 70 C 720 70 650 175 598 300'],
+  ['e3','cat','sub','M980 150 L980 207'],
+  ['e4','sub','fmt','M980 252 L980 307'],
+  ['e5','fmt','sort','M868 330 L 600 330'],
+  ['e6','sort','product','M560 412 L560 512'],
+  ['e7','verify','product','M262 360 C 400 360 430 480 512 536'],
+  ['e8','vehicle','product','M216 580 L496 580'],
+  ['e9','product','listing','M626 580 L 920 580'],
+  ['e10','listing','script2','M960 662 L960 724',1],
+  ['e11','script2','file','M920 760 L 742 760'],
+  ['e12','file','channels','M658 760 L 556 760']
+];
+const label=id=>id==='channels'?'ช่องทางจำหน่าย':N.find(n=>n.id===id).th;
+
+const stage=document.getElementById('stage'),eg=document.getElementById('edges');
+const svgIc=(k,v='0 0 48 48')=>`<svg viewBox="${v}">${I[k]}</svg>`;
+E.forEach(([id,a,b,d,dot])=>{
+  const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d',d);p.setAttribute('class','edge'+(dot?' dot':''));p.id=id;
+  if(!dot)p.setAttribute('marker-end','url(#ah)');
+  eg.appendChild(p);
+});
+N.forEach(n=>{
+  const b=document.createElement('button');
+  b.type='button';b.dataset.id=n.id;b.className='node '+(n.kind==='chan'?'pill chan':n.kind);
+  b.style.left=n.x+'px';b.style.top=n.y+'px';
+  if(n.kind==='pill')b.innerHTML=svgIc(n.ic)+`<span class="txt"><span class="en">${n.en}</span><span class="th">${n.th}</span></span>`;
+  else if(n.kind==='chan')b.innerHTML=`<span class="en">${n.en}</span>`;
+  else b.innerHTML=`<span class="ic">${svgIc(n.ic)}</span><span class="en">${n.en}</span><span class="th">${n.th}</span>${n.badge?`<span class="badge ${n.badge[0]}">${n.badge[1]}</span>`:''}`;
+  b.addEventListener('click',()=>openD(n.ch?'channels':n.id));
+  b.addEventListener('mouseenter',()=>{if(!playing)focusOn(n.ch?'channels':n.id)});
+  b.addEventListener('mouseleave',()=>{if(!playing)clearFocus()});
+  stage.appendChild(b);
+});
+function nodesOf(id){return id==='channels'?CH:[id]}
+function focusSet(ids,edges){
+  stage.classList.add('focus');
+  const all=new Set(ids.flatMap(nodesOf));
+  stage.querySelectorAll('.node').forEach(n=>n.classList.toggle('lit',all.has(n.dataset.id)));
+  stage.querySelectorAll('.edge').forEach(p=>p.classList.toggle('on',edges.includes(p.id)));
+}
+function focusOn(id){
+  const es=E.filter(e=>e[1]===id||e[2]===id);
+  focusSet([id,...es.map(e=>e[1]),...es.map(e=>e[2])],es.map(e=>e[0]));
+}
+function clearFocus(){stage.classList.remove('focus');stage.querySelectorAll('.lit').forEach(n=>n.classList.remove('lit'));stage.querySelectorAll('.edge.on').forEach(p=>p.classList.remove('on'))}
+
+/* scale */
+const wrap=document.getElementById('mapwrap');
+function fit(){const s=Math.max(.62,Math.min(1,wrap.clientWidth/1200));stage.style.transform=`scale(${s})`;wrap.style.height=(880*s)+'px';stage.parentElement.style.width='';stage.style.marginRight=(1200*s-1200)+'px';stage.style.marginBottom=(880*s-880)+'px'}
+addEventListener('resize',fit);fit();
+
+/* drawer */
+const dr=document.getElementById('drawer');
+function openD(id){
+  stopDemo();
+  const d=D[id],n=N.find(x=>x.id===id)||{en:d.en,th:d.th};
+  const jumps=a=>a.length?a.map(k=>`<button class="jump" type="button" data-go="${k}">${label(k)} <span aria-hidden="true">→</span></button>`).join(''):'<span class="empty">—</span>';
+  dr.innerHTML=`<div class="dr-top"><div class="dr-ic">${svgIc(d.ic)}</div><button class="close" type="button" aria-label="ปิด" id="closeBtn"><svg viewBox="0 0 14 14"><path d="M2 2l10 10M12 2L2 12"/></svg></button></div>
+  <div><div class="dr-en">${d.code} · ${n.en}</div><h2>${n.th}</h2></div>
+  <p>${d.desc}</p>
+  ${d.note?`<div class="note ${d.note[0]}">${d.note[1]}</div>`:''}
+  <div class="sec"><h3>${id==='channels'?'ช่องทาง':'หน้าที่'}</h3><ul>${d.role.map(r=>`<li>${r}</li>`).join('')}</ul></div>
+  ${d.fields?`<div class="sec"><h3>ข้อมูลสำคัญ</h3><div class="chips">${d.fields.map(f=>`<span class="chip">${f}</span>`).join('')}</div></div>`:''}
+  ${d.vers?`<div class="sec"><h3>ฐานข้อมูลสินค้า 4 เวอร์ชั่น</h3><div class="vers">${d.vers.map(v=>`<div class="ver"><b>${v[0]}</b><span>${v[1]}</span></div>`).join('')}</div></div>`:''}
+  <div class="sec"><h3>รับข้อมูลจาก</h3><div class="chips">${jumps(d.from)}</div></div>
+  <div class="sec"><h3>ส่งข้อมูลต่อไปที่</h3><div class="chips">${jumps(d.to)}</div></div>`;
+  document.body.classList.add('open');dr.setAttribute('aria-hidden','false');
+  focusOn(id);
+  dr.querySelector('#closeBtn').focus();
+  dr.querySelector('#closeBtn').onclick=closeD;
+  dr.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>openD(b.dataset.go));
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+}
+function closeD(){document.body.classList.remove('open');dr.setAttribute('aria-hidden','true');clearFocus();try{history.replaceState(null,'',' ')}catch(e){}}
+document.getElementById('scrim').onclick=closeD;
+addEventListener('keydown',e=>{if(e.key==='Escape')closeD()});
+
+/* demo */
+const S=[
+  [['raw'],[],'เริ่มจากไฟล์ข้อมูลดิบของสินค้า'],
+  [['size','cat','sub','fmt'],['e3','e4'],'ฐานข้อมูลขนาด/น้ำหนัก หมวดหมู่ และ SubGroup เตรียมข้อมูลประกอบและ FORMAT สร้างชื่อ'],
+  [['raw','size','fmt','sort'],['e1','e2','e5'],'Script รวมไฟล์ดิบ เติมขนาด/น้ำหนักอัตโนมัติ และสร้างชื่อตาม FORMAT'],
+  [['sort','product'],['e6'],'ข้อมูลที่จัดเรียงแล้วเข้าสู่ระบบฐานข้อมูลสินค้า'],
+  [['vehicle','verify','product'],['e7','e8'],'ฐานข้อมูลรถระบุตัวตนรถให้สินค้า และระบบตรวจสอบเทียบข้อมูลกับร้านอื่น'],
+  [['product','listing'],['e9'],'EXPORT ข้อมูลจากฐานข้อมูลสินค้าไปยังระบบลงสินค้า'],
+  [['listing','script2','file'],['e10','e11'],'Script จัดเรียงข้อมูลให้เป็นไฟล์สำหรับลงสินค้า'],
+  [['file','channels'],['e12'],'นำไฟล์ไปลงสินค้าใน Shopee, Lazada, TikTok และ Website']
+];
+const dots=document.getElementById('dots'),cap=document.getElementById('caption'),pt=document.getElementById('playTxt'),pi=document.getElementById('playIc');
+S.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('aria-label','ขั้นที่ '+(i+1));b.onclick=()=>{stopDemo();step(i)};dots.appendChild(b)});
+let playing=false,cur=-1,timer=null;
+function step(i){cur=i;const s=S[i];focusSet(s[0],s[1]);cap.innerHTML=`<b>STEP ${i+1} / ${S.length}</b>${s[2]}`;[...dots.children].forEach((d,j)=>d.classList.toggle('on',j===i))}
+function startDemo(){closeD();playing=true;pt.textContent='หยุด';pi.innerHTML='<path d="M2 1h2.5v8H2zM5.5 1H8v8H5.5z"/>';step(cur>=S.length-1||cur<0?0:cur+1);timer=setInterval(()=>{if(cur>=S.length-1){stopDemo();return}step(cur+1)},2800)}
+function stopDemo(){if(!playing)return;playing=false;clearInterval(timer);pt.textContent='สาธิตการทำงาน';pi.innerHTML='<path d="M2 1l7 4-7 4z"/>'}
+document.getElementById('play').onclick=()=>playing?stopDemo():startDemo();
+
+const h=(location.hash||'').slice(1);if(D[h])openD(h);
+</script>
+
+</body>
+</html>
